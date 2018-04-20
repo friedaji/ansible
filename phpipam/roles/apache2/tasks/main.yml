@@ -1,0 +1,23 @@
+---
+- name: Install Apache
+  apt: 
+    name: "{{ item }}"
+    state: present
+    update_cache: yes
+  with_items:
+    - apache2
+    - apache2-utils
+
+- name: stop apache
+  service: 
+    name: apache2
+    state: stopped
+
+- name : enable rewrite
+  apache2_module:
+    state: present
+    name: rewrite
+
+- name: Start Apache
+  service: name=apache2 state=restarted
+

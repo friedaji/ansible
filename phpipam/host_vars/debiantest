@@ -1,0 +1,5 @@
+---
+DB_USER: phpipam
+DB_PASS: phpipam
+DB_NAME: phpipam
+DB_ROOT_PASSWORD: TESTPASS

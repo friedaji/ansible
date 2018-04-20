@@ -1,0 +1,9 @@
+---
+- hosts: ipam
+  roles:
+    - ntp
+    - apache2
+    - mariadb
+    - php
+    - phpipam
+  become: yes

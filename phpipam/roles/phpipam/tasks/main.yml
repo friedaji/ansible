@@ -1,0 +1,89 @@
+---
+- name: Install Git
+  apt: 
+    name: "{{ item }}"
+    state: present
+    update_cache: yes
+  with_items:
+    - git
+
+- name: Clone phpIPAM
+  git:
+    repo: https://github.com/phpipam/phpipam.git
+    dest: "/usr/local/src/phpipam/{{ PHPIPAMVER }}"
+    version: "{{ PHPIPAMVER }}"
+
+- name: Move src tree
+  command: "mv /usr/local/src/phpipam/{{ PHPIPAMVER}} /var/www/phpipam"
+  warn: no  
+
+- name: chown
+  file:
+    path: /var/www/phpipam
+    owner: www-data
+    group: www-data
+    recurse: yes
+
+##  command: chown www-data:www-data -R /var/www/phpipam
+
+## - name: find directory
+##   find:
+##     paths: /var/www/phpipam
+##     file_type: directory
+##     recurse: yes
+##   register: directory_result
+
+## - name: chmod directories
+##   file:
+##     path: "{{ item.path }}"
+##     mode: 0755
+##   with_items: "{{ directory_result.files }}"
+
+## - name: find files
+##   find:
+##     paths: /var/www/phpipam
+##     file_type: file
+##     recurse: yes
+##   register: file_result
+
+## - name: chmod files
+##   file:
+##     path: "{{ item.path }}"
+##     mode: 0644
+##   with_items: "{{ file_result.files }}"
+
+- name: copy config
+  copy:
+    src: /var/www/phpipam/config.dist.php
+    dest: /var/www/phpipam/config.php
+    remote_src: yes
+ 
+- name: modify config
+  replace:
+    path: /var/www/phpipam/config.php
+    regexp: '{{ item.regexp }}'
+    replace: '{{ item.replace }}'
+  with_items:
+    - regexp: '^[$]db\[''pass''\] =.*$'
+      replace: "$db['pass'] = '{{ DB_PASS }}';"
+    - regexp: '^define[(]''BASE.*$'
+      replace: "define('BASE', \"/phpipam/\");"
+    
+- name: init db
+  mysql_db:
+    name: "{{DB_NAME}}"
+    state: import
+    target: /var/www/phpipam/db/SCHEMA.sql
+
+- name: config apache
+  template:
+    src: "{{ item.src }}"
+    dest: "{{ item.dest }}"
+  with_items:
+    - { src: ipam.j2, dest: /etc/apache2/sites-available/ipam.conf }
+
+- name: enable site
+  command: a2ensite ipam.conf
+
+- name: retart Apache
+  service: name=apache2 state=restarted
