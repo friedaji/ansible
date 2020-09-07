@@ -1,0 +1,15 @@
+---
+- hosts: all
+  roles:
+    - initdb
+  become: yes
+
+ - hosts: pub_servers
+   roles:
+    - initpub
+  become: yes
+
+ - hosts: sub_servers
+   roles:
+    - initsub
+  become: yes
