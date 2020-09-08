@@ -1,0 +1,7 @@
+---
+- name: init sql
+  - template:
+    src: ichi.sql
+    state: present
+with_items:
+    - { name: 'user' , count: '10' }

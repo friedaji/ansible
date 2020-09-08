@@ -2,14 +2,16 @@
 - hosts: all
   roles:
     - initdb
+    - partisions
   become: yes
 
  - hosts: pub_servers
    roles:
-    - initpub
+    - pub
   become: yes
 
  - hosts: sub_servers
    roles:
-    - initsub
+    - sub
   become: yes
+
