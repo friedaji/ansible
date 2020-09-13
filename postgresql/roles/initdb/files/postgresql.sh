@@ -1,0 +1,1 @@
+su _postgres -c '/opt/postgresql-13/bin/pg_ctl -D /opt/postgresql-13/data -l logfile start'

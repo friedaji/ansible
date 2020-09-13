@@ -1,1 +1,29 @@
 ---
+- name: Copy publication.sql
+  template:
+    src: createpub.j2
+    dest: /var/tmp/createpub.sql
+    mode: 0644  
+
+- name: run publication
+  shell: "{{postgresql_dir}}/bin/psql test < /var/tmp/createpub.sql"
+  become: yes  
+  become_user: "{{postgresql_user}}"
+  become_method: sudo
+
+- name: Copy createadmin.sql
+  copy:
+    src: createadmin.sql
+    dest: /var/tmp/createadmin.sql
+    mode: '0644'
+
+- name : add admin user
+  shell: "{{postgresql_dir}}/bin/psql test < /var/tmp/createadmin.sql"
+  become: yes  
+  become_user: "{{postgresql_user}}"
+  become_method: sudo
+
+- name: remove file
+  file:
+    path: /var/tmp/createpub.sql
+    state: absent

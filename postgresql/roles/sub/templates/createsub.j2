@@ -1,0 +1,3 @@
+{% for table in table_name %}
+    CREATE SUBSCRIPTION sub_{{ table }} CONNECTION 'host={{ pub_server }} port={{ db_port }} user={{ repl_user }} dbname={{ db_name }} password=REPLPASS' PUBLICATION pub_{{ table }};
+{% endfor %}

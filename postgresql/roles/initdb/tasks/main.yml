@@ -1,27 +1,92 @@
----
-  - name: Copy postgresql.conf
-    copy:
-      src: postgresql.conf
-      dest: "{{__postgresql_data_dir}}"/postgresql.conf
-      owner: "{{ postgres_user }}"
-      group: "{{ postgres_group }}"
-      mode: 0600
-      backup: yes
+- name: check datadir
+  stat:
+    path: "{{postgresql_data_dir}}"
+  register: result
 
-  - name: Copy pg_hba.conf
-    copy:
-      src: pg_hba.conf
-      dest: "{{__postgresql_data_dir}}"/pg_hba.conf
-      owner: "{{ postgres_user }}"
-      group: "{{ postgres_group }}"
-      mode: 0600
+- name: remove olddir
+  file:
+    state: absent
+    path: "{{postgresql_data_dir}}"
+  when: result.stat.exists
 
-  - name: Create User
+- name: make datadir
+  file:
+    path: "{{postgresql_data_dir}}"
+    state: directory
+    owner: "{{postgresql_user}}"
+    group: "{{postgresql_group}}"
 
+- name: initdb
+  command: "{{postgresql_dir}}/bin/initdb -D {{postgresql_data_dir}}"
+  become: yes  
+  become_user: "{{postgresql_user}}"
+  become_method: sudo
 
-  - name : Copy make.pl
-    copu:
-      src: makedb.pl
-      destL: makedb.pl
-      mode: 0755
+- name: Copy postgresql.conf
+  copy:
+    src: postgresql.conf
+    dest: "{{postgresql_data_dir}}/postgresql.conf"
+    owner: "{{postgresql_user}}"
+    group: "{{postgresql_group}}"
+    mode: '0600'
 
+- name: Copy pg_hba.conf
+  copy:
+    src: pg_hba.conf
+    dest: "{{postgresql_data_dir}}/pg_hba.conf"
+    owner: "{{postgresql_user}}"
+    group: "{{postgresql_group}}"
+    mode: '0600'
+
+- name: check postgres prosess
+  shell: ps aux |grep post
+  register: p_running
+
+# linux only
+- name: stop prosess
+  shell: killall postgres
+#  when: p_running.stdout.find('postgres')
+  when: p_running.stdout.find('postgres') != -1
+
+- name: run postgres
+  shell: "{{postgresql_dir}}/bin/pg_ctl -D {{postgresql_data_dir}} -l /var/log/postgres/pgsql_log start"
+  become: yes  
+  become_user: "{{postgresql_user}}"
+  become_method: sudo
+
+- name: run tempdb
+  command: "{{postgresql_dir}}/bin/createdb _postgres"
+  become_user: "{{postgresql_user}}"
+  become_method: sudo
+
+- name: Copy createuser.sql
+  copy:
+    src: createuser.sql
+    dest: /var/tmp/createuser.sql
+    mode: '0644'
+
+- name: createuser
+  raw: "{{postgresql_dir}}/bin/psql < /var/tmp/createuser.sql"
+  become: yes  
+  become_user: "{{postgresql_user}}"
+  become_method: sudo
+
+- name: remove file ( createuser)
+  file:
+    path: /var/tmp/createuser.sql
+    state: absent
+
+- name: create db
+  command: "{{postgresql_dir}}/bin/createdb test -O test"
+  become_user: "{{postgresql_user}}"
+  become_method: sudo
+
+- name: Copy make.pl
+  copy:
+    src: make_db.pl
+    dest: /var/tmp/make_db.pl
+    mode: '0755'
+
+# vagrant@ubuntu-xenial:~$ sudo rm -rf /opt/postgresql-13/data/
+# vagrant@ubuntu-xenial:~$ sudo mkdir /opt/postgresql-13/data
+# vagrant@ubuntu-xenial:~$ sudo chown _postgres /opt/postgresql-13/data/

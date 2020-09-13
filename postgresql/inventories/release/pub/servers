@@ -1,0 +1,6 @@
+[pub_servers]
+172.16.8.3
+
+[pub_servers:vars]
+ansible_user=test
+ansible_pasword=test

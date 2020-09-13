@@ -1,1 +1,17 @@
 ---
+- name: Copy sub.sql
+  template:
+    src: createsub.j2
+    dest: /var/tmp/createsub.sql
+    mode: 0644  
+
+- name: run sub
+  shell: "{{postgresql_dir}}/bin/psql test < /var/tmp/createsub.sql"
+  become: yes  
+  become_user: "{{postgresql_user}}"
+  become_method: sudo
+  
+- name: remove file 
+  file:
+    path: ~/createsub.sql
+    state: absent

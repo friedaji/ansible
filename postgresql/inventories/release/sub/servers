@@ -1,0 +1,10 @@
+[sub_servers]
+172.16.8.4
+172.16.8.5
+
+[sub_servers:vars]
+ansible_user=test
+ansible_pasword=test
+pub_server=172.16.8.3
+db_port=5432
+db_name=test

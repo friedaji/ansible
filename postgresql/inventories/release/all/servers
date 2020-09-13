@@ -1,0 +1,7 @@
+[all:children]
+pub_servers
+sub_servers
+
+[all:vars]
+ansible_user=test
+ansible_pasword=test

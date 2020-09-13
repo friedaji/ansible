@@ -1,17 +1,25 @@
 ---
-- hosts: all
+- name: all server deploy
+  hosts: all
   roles:
     - initdb
-    - partisions
   become: yes
+  become_user: root
+  become_method: sudo
 
- - hosts: pub_servers
-   roles:
+- name: pub server setting
+  hosts: pub_servers
+  roles:
     - pub
   become: yes
+  become_user: root
+  become_method: sudo
 
- - hosts: sub_servers
-   roles:
+- name: sub server setting
+  hosts: sub_servers
+  roles:
     - sub
   become: yes
+  become_user: root
+  become_method: sudo
 

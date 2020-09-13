@@ -1,0 +1,3 @@
+{% for table in table_name %}
+    CREATE PUBLICATION pub_{{ table }} FOR TABLE {{ table }} ;
+{% endfor %}
